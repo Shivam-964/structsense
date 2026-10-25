@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>StructSense - Structural Health Monitoring &amp; AI Digital Twin</title>
+<meta name="theme-color" content="#0F2A43">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231D6FA5'/%3E%3Cpath d='M9 25V8h9v17M18 13h5v12M12 12h3M12 16h3M12 20h3' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEF2F6;--panel:#fff;--ink:#0F2A43;--mute:#5B6F84;--line:#DCE3EA;--brand:#1D6FA5;--brand2:#E8F2F9;--ok:#14935F;--warn:#B07A00;--crit:#D2403A;--okbg:#E3F5EC;--warnbg:#FBF0D3;--critbg:#FBE5E3;--side:#0F2A43;--win:#C9D6E2;--wall:#E3EAF1;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0A1622;--panel:#11202F;--ink:#E7EEF5;--mute:#8FA3B8;--line:#1F3347;--brand:#4DA6E0;--brand2:#14304A;--ok:#3DCB8C;--warn:#F0B429;--crit:#F26B63;--okbg:#10382B;--warnbg:#3B2F0E;--critbg:#401C1A;--side:#0D1B2A;--win:#1C3248;--wall:#162A3E;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0A1622;--panel:#11202F;--ink:#E7EEF5;--mute:#8FA3B8;--line:#1F3347;--brand:#4DA6E0;--brand2:#14304A;--ok:#3DCB8C;--warn:#F0B429;--crit:#F26B63;--okbg:#10382B;--warnbg:#3B2F0E;--critbg:#401C1A;--side:#0D1B2A;--win:#1C3248;--wall:#162A3E;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.5}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.app{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+.side{background:var(--side);color:#E7EEF5;padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;padding:0 8px 22px}
+.logo i{width:32px;height:32px;border-radius:9px;background:#4DA6E0;display:grid;place-items:center}
+.nav{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;border:0;background:none;color:#A9BCCF;font-weight:600;text-align:left;width:100%;transition:background .2s,transform .2s}
+.nav:hover{background:rgba(255,255,255,.07);transform:translateX(2px)}
+.nav.on{background:linear-gradient(135deg,#2A82BC,#1D6FA5);color:#fff;box-shadow:0 8px 20px rgba(29,111,165,.45)}
+.nav b{margin-left:auto;background:#D2403A;color:#fff;border-radius:99px;font-size:11px;padding:1px 7px}
+.side small{margin-top:auto;color:#7E94AA;padding:0 8px;font-size:12px}
+.main{padding:22px 28px 40px;min-width:0;overflow-x:clip}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.top h1{font-size:24px;margin:0;font-weight:800;letter-spacing:-.4px}
+.top p{margin:0;color:var(--mute);font-size:13px}
+.sp{flex:1}
+select,.btn{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-weight:600;color:var(--ink);transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn.pri{background:linear-gradient(135deg,#2A82BC,#1D6FA5);border-color:var(--brand);color:#fff;box-shadow:0 8px 18px rgba(29,111,165,.35)}
+.live{display:flex;align-items:center;gap:7px;color:var(--mute);font-size:12.5px;font-weight:600}
+.live span{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pu 1.6s infinite}
+@keyframes pu{50%{opacity:.25}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--sh)}
+.panel h2{margin:0 0 14px;font-size:15px;font-weight:700}
+.hero{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+.score{display:flex;flex-direction:column;align-items:center;text-align:center}
+.score svg{width:100%;max-width:330px;overflow:visible}
+.big{font-size:56px;font-weight:800;letter-spacing:-2px;line-height:1;margin-top:-52px;background:linear-gradient(135deg,var(--ink) 30%,var(--brand));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.chip{display:inline-block;border-radius:99px;padding:3px 11px;font-size:12px;font-weight:700}
+.chip::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:6px;vertical-align:1px}
+.chip.ok{background:var(--okbg);color:var(--ok)}.chip.warn{background:var(--warnbg);color:var(--warn)}.chip.crit{background:var(--critbg);color:var(--crit)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;margin-top:18px}
+.stats div{background:var(--bg);border-radius:12px;padding:10px}
+.stats b{display:block;font-size:20px}.stats span{color:var(--mute);font-size:12px}
+.elev{display:flex;justify-content:center}
+.elev svg{width:100%;max-width:340px;height:auto}
+.dot{cursor:pointer}
+.ring{animation:rg 1.8s infinite;transform-box:fill-box;transform-origin:center}
+@keyframes rg{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.6);opacity:0}}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:16px 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;text-align:left;border-left-width:4px;box-shadow:var(--sh);display:flex;flex-direction:column;justify-content:flex-start;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-3px)}
+.card.ok{border-left-color:var(--ok)}.card.warn{border-left-color:var(--warn)}.card.crit{border-left-color:var(--crit)}
+.card.sel{box-shadow:0 0 0 2px var(--brand)}
+.card .n{color:var(--mute);font-weight:600;font-size:12.5px;display:flex;justify-content:space-between;flex-wrap:wrap;row-gap:6px}
+.card .v{font-size:25px;font-weight:800;letter-spacing:-.5px}
+.card .v small{font-size:12px;color:var(--mute);font-weight:600;margin-left:3px}
+.card svg{width:100%;height:30px;display:block;margin-top:4px}
+.two{display:grid;grid-template-columns:1.7fr 1fr;gap:16px}
+.chart{width:100%;height:auto;display:block}
+.al{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.al:first-of-type{border-top:0}
+.al i{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:none}
+.al b{display:block;font-size:13.5px}.al span{color:var(--mute);font-size:12px}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;color:var(--mute);font-size:12.5px;font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line)}
+.tbl td{padding:12px 10px;border-bottom:1px solid var(--line)}
+.tbl tbody tr:hover{background:var(--bg)}
+.tw{overflow-x:auto}
+.tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:6px 14px;font-weight:600}
+.tabs button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.drop{border:2px dashed var(--line);border-radius:16px;padding:46px 20px;text-align:center;color:var(--mute);background:var(--bg)}
+.drop strong{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+.imgs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+.imgs img{width:100%;height:auto;border-radius:12px;background:var(--bg)}
+.stats.s4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:860px){.stats.s4{grid-template-columns:repeat(2,1fr)}}
+.imgs p{margin:0 0 6px;font-weight:700;font-size:13px}
+.rng{display:flex;align-items:center;gap:12px;margin:14px 0;flex-wrap:wrap}
+.note{color:var(--mute);font-size:12.5px;margin-top:12px}
+.banner{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:16px;margin-bottom:16px;color:#fff;box-shadow:var(--sh)}
+.banner.ok{background:linear-gradient(135deg,#0F8A5A,#1BB37C)}
+.banner.warn{background:linear-gradient(135deg,#B07A00,#E0A400)}
+.banner.crit{background:linear-gradient(135deg,#B8312B,#E5544C)}
+.banner .bi{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-weight:800;font-size:18px;flex:none}
+.banner b{display:block;font-size:15.5px}.banner span{opacity:.92;font-size:13px}
+.lg{display:grid;grid-template-columns:1.1fr 1fr;min-height:100vh}
+.lgl{background:radial-gradient(620px 420px at 15% 8%,rgba(77,166,224,.38),transparent 60%),radial-gradient(520px 420px at 95% 95%,rgba(27,179,124,.26),transparent 60%),linear-gradient(160deg,#12334F,#0A1B2B);color:#E7EEF5;padding:56px;display:flex;flex-direction:column;justify-content:center;gap:18px}
+.lgl h1{font-size:38px;line-height:1.15;letter-spacing:-1px;margin:0;font-weight:800;max-width:460px}
+.lgl p{color:#A9BCCF;margin:0;max-width:420px;font-size:15px}
+.lgl ul{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:10px;color:#C9D8E6}
+.lgl li{display:flex;gap:10px;align-items:center}
+.lgl li::before{content:'\2713';display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:rgba(27,179,124,.22);color:#5BE0A8;font-size:12px;font-weight:800;flex:none}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.pills span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:600;backdrop-filter:blur(6px)}
+.lgr{display:grid;place-items:center;padding:30px}
+.lgf{background:var(--panel);padding:30px;border-radius:22px;box-shadow:var(--sh);border:1px solid var(--line);width:100%;max-width:380px;display:grid;gap:14px}
+.lgf h2{margin:0;font-size:26px;font-weight:800}
+.lgf label,.flt label{display:grid;gap:6px;font-weight:600;font-size:13px;color:var(--mute)}
+.lgf input,.lgf select,.flt input,.flt select{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit}
+.err{color:var(--crit);font-size:13px;font-weight:600;margin:0}
+.flt{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px}
+.flt .tabs{margin:0}
+.mt{margin-top:16px}
+.sc{max-height:380px;overflow:auto}
+.ba{position:relative;border-radius:14px;overflow:hidden;line-height:0;background:var(--bg)}
+.ba img{width:100%;height:auto;display:block}
+.ba-r{position:absolute;inset:0}.ba-r img{height:100%;object-fit:cover}
+.ba-h{position:absolute;top:0;bottom:0;width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+.ba input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.ba-l{position:absolute;top:10px;background:rgba(15,42,67,.78);color:#fff;font-size:12px;font-weight:700;border-radius:99px;padding:3px 10px;line-height:1.4}
+.ba-l.l{left:10px}.ba-l.r{right:10px}
+.h3{font-size:12px;margin:16px 0 4px;color:var(--mute);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.panel ol{margin:6px 0 0;padding-left:20px}.panel li{margin:5px 0}
+.lead{font-weight:700;margin:0 0 4px;font-size:15px}
+.callout{background:var(--warnbg);color:var(--warn);border-radius:12px;padding:10px 12px;font-weight:600;font-size:13px;margin:14px 0 0}
+.mini{color:var(--mute);font-size:12.5px;font-weight:600;margin-left:8px}
+.hl{stroke:var(--ink);stroke-width:2.5}
+.leg{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:4px;font-size:12.5px;color:var(--mute)}
+.leg li{padding:6px 10px;border-radius:10px;margin:0}.leg li.on{background:var(--brand2);color:var(--ink)}
+.tbl tr.click{cursor:pointer}
+.nm{display:flex;align-items:center}
+.ico{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:var(--bg);margin-right:8px;flex:none}
+.sk{display:grid;gap:16px}
+.sk div{height:150px;border-radius:20px;background:linear-gradient(90deg,var(--panel) 25%,var(--line) 37%,var(--panel) 63%);background-size:400% 100%;animation:sh 1.4s infinite}
+.sk div:first-child{height:260px}
+@keyframes sh{0%{background-position:100% 0}100%{background-position:0 0}}
+@media (max-width:1180px){.cards{grid-template-columns:repeat(3,1fr)}.hero,.two{grid-template-columns:1fr}}
+@media (max-width:860px){
+ .app{grid-template-columns:1fr}
+ .side{position:fixed;top:auto;bottom:0;left:0;right:0;height:auto;flex-direction:row;justify-content:space-around;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:20;background:rgba(13,27,42,.93);backdrop-filter:blur(14px)}
+ .side .logo,.side small{display:none}
+ .nav{flex-direction:column;gap:2px;font-size:10.5px;justify-content:center;align-items:center;padding:6px;white-space:nowrap}
+ .nav:hover{transform:none}
+ .nav b{margin:0;position:absolute;transform:translate(14px,-6px)}
+ .main{padding:16px 14px 96px}
+ .cards{grid-template-columns:repeat(2,1fr)}.imgs{grid-template-columns:1fr}.top h1{font-size:20px}
+ .lg{grid-template-columns:1fr}.lgl{display:none}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- Core Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+
+<script type="text/babel">
+const {useState,useEffect,useRef}=React;
+
+let TOKEN=null;
+const api=async(u,o={})=>{
+  const h={...(o.headers||{})};
+  if(TOKEN)h.Authorization='Bearer '+TOKEN;
+  if(o.json){h['Content-Type']='application/json';o={...o,body:JSON.stringify(o.json)}}
+  const r=await fetch(u,{...o,headers:h});
+  const j=await r.json().catch(()=>({}));
+  if(r.status===401&&TOKEN){TOKEN=null;location.reload()}
+  if(!r.ok)throw new Error(j.error||'Something went wrong. Try again.');
+  return j;
+};
+
+const S=[
+ {id:'vib',n:'Vibration',u:'mm/s',base:1.1,warn:3,crit:5,off:0,w:.25,fl:5,x:150,d:2},
+ {id:'tilt',n:'Tilt',u:'°',base:.12,warn:.5,crit:1,off:0,w:.25,fl:6,x:90,d:2},
+ {id:'crack',n:'Crack width',u:'mm',base:.3,warn:.8,crit:1.5,off:0,w:.2,fl:2,x:195,d:2},
+ {id:'strain',n:'Strain',u:'µε',base:180,warn:400,crit:600,off:0,w:.2,fl:1,x:70,d:0},
+ {id:'temp',n:'Temperature',u:'°C',base:27,warn:42,crit:55,off:20,w:.1,fl:4,x:120,d:1}
+];
+
+const B=[
+ {n:'Skyline Tower A',c:'Ghaziabad',k:1},
+ {n:'Harbor Heights B',c:'Noida',k:1.9},
+ {n:'Civic Plaza C',c:'Delhi',k:.8}
+];
+
+const ICON={
+  grid:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',
+  bell:'M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6zM10 19a2 2 0 0 0 4 0',
+  cam:'M4 7h4l2-3h4l2 3h4v12H4zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+  bld:'M5 21V4h9v17M14 9h5v12M8 8h3M8 12h3M8 16h3',
+  clock:'M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z',
+  chart:'M18 20V10M12 20V4M6 20v-6',
+  doc:'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8'
+};
+
+const Ic=({p})=><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d={p}/></svg>;
+
+const ICO={
+  vib:'M2 12h3l2-6 3 12 3-9 2 3h7',
+  tilt:'M4 20h16M4 20L17 7M10 20a6 6 0 0 0-2-4',
+  crack:'M12 2l-2 6 4 3-3 4 2 7',
+  strain:'M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4',
+  temp:'M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z'
+};
+
+const stat=(s,v)=>v>=s.crit?'crit':v>=s.warn?'warn':'ok';
+const col=t=>`var(--${t})`;
+const label={ok:'Safe',warn:'Warning',crit:'Critical'};
+const ratio=(s,v)=>Math.min(1,Math.max(0,(v-s.off)/(s.crit-s.off)));
+const health=d=>Math.round(S.reduce((a,s)=>a+s.w*(100-100*ratio(s,d[s.id].at(-1))**2),0));
+const hStat=h=>h>=75?'ok':h>=50?'warn':'crit';
+
+function Gauge({score,t}){
+  return(
+   <svg viewBox="0 0 200 120" role="img" aria-label={`Health score ${score}`}>
+    <path d="M20 110A80 80 0 0 1 180 110" fill="none" stroke="var(--line)" strokeWidth="14" strokeLinecap="round" pathLength="100"/>
+    <path d="M20 110A80 80 0 0 1 180 110" fill="none" stroke={col(t)} strokeWidth="14" strokeLinecap="round" pathLength="100" strokeDasharray={`${score} 100`} style={{transition:'stroke-dasharray .8s,stroke .4s',filter:`drop-shadow(0 4px 8px ${col(t)})`}}/>
+   </svg>
+  );
+}
+
+function Spark({vals,t}){
+  const mx=Math.max(...vals),mn=Math.min(...vals),r=mx-mn||1;
+  const p=vals.map((v,i)=>`${i?'L':'M'}${(i/(vals.length-1))*100} ${28-((v-mn)/r)*24}`).join('');
+  return <svg viewBox="0 0 100 30" preserveAspectRatio="none"><path d={p+'L100 30L0 30z'} fill={col(t)} opacity=".12"/><path d={p} fill="none" stroke={col(t)} strokeWidth="1.6" vectorEffect="non-scaling-stroke"/></svg>;
+}
+
+function Elevation({d,sel,pick}){
+  const fy=f=>280-f*40;
+  return(
+   <svg viewBox="0 0 260 310" role="img" aria-label="Building elevation blueprint with sensor positions">
+    <defs><linearGradient id="sk" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="var(--brand)" stopOpacity=".18"/><stop offset="1" stopColor="var(--brand)" stopOpacity="0"/></linearGradient></defs>
+    <rect x="0" y="0" width="260" height="310" rx="18" fill="url(#sk)"/>
+    <path d="M30 40L130 12L230 40z" fill="var(--brand)" opacity=".85"/>
+    <rect x="40" y="40" width="180" height="240" fill="var(--wall)" stroke="var(--line)" strokeWidth="2"/>
+    {[1,2,3,4,5,6].map(f=><g key={f}>
+     <text x="6" y={fy(f)+24} fontSize="10" fill="var(--mute)" fontWeight="600">F{f}</text>
+     <line x1="40" x2="220" y1={fy(f)} y2={fy(f)} stroke="var(--line)"/>
+     {[0,1,2,3,4].map(i=><rect key={i} x={52+i*34} y={fy(f)+9} width="20" height="16" rx="2" fill="var(--win)"/>)}</g>)}
+    <rect x="116" y="248" width="28" height="32" fill="var(--ink)" opacity=".7"/>
+    {S.map(s=>{const t=stat(s,d[s.id].at(-1));const y=fy(s.fl)+17;return(
+     <g key={s.id} className="dot" onClick={()=>pick(s.id)} tabIndex="0" role="button" aria-label={`${s.n}: ${label[t]}`}>
+      {t!=='ok'&&<circle className="ring" cx={s.x} cy={y} r="6" fill={col(t)}/>}
+      <circle cx={s.x} cy={y} r="7" fill={col(t)} stroke="var(--panel)" strokeWidth="2.5"/>
+      {sel===s.id&&<circle cx={s.x} cy={y} r="11" fill="none" stroke="var(--brand)" strokeWidth="2"/>}
+     </g>)})}
+    <rect x="24" y="280" width="212" height="8" rx="4" fill="var(--ink)" opacity=".25"/>
+   </svg>
+  );
+}
+
+function Building3D({d, sel, pick, b}) {
+  const mountRef = useRef(null);
+  const [wireframe, setWireframe] = useState(false);
+  const wireRef = useRef(false);
+  wireRef.current = wireframe;
+
+  useEffect(() => {
+    const el = mountRef.current;
+    if (!el || !window.THREE) return;
+
+    const width = el.clientWidth || 360;
+    const height = 330;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+    camera.position.set(11, 9, 13);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    el.replaceChildren(renderer.domElement);
+
+    const controls = window.THREE.OrbitControls ? new THREE.OrbitControls(camera, renderer.domElement) : null;
+    if (controls) {
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2 + 0.05;
+      controls.minDistance = 6;
+      controls.maxDistance = 28;
+      controls.target.set(0, 3.4, 0);
+    }
+
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x445566, 0.85);
+    scene.add(hemiLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+    dirLight.position.set(10, 16, 8);
+    scene.add(dirLight);
+
+    // Foundation
+    const baseMat = new THREE.MeshStandardMaterial({ color: 0x1E293B, roughness: 0.8 });
+    const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.5, 4.8), baseMat);
+    baseMesh.position.y = -0.25;
+    scene.add(baseMesh);
+
+    // Grid
+    const grid = new THREE.GridHelper(18, 18, 0x1D6FA5, 0x334E68);
+    grid.position.y = -0.5;
+    scene.add(grid);
+
+    // Slabs & Glass Curtain Wall
+    const slabMat = new THREE.MeshStandardMaterial({ color: 0xCBD5E1, roughness: 0.6 });
+    const glassMat = new THREE.MeshPhysicalMaterial({ color: 0x64B5F6, transparent: true, opacity: 0.22, roughness: 0.1 });
+    const colMat = new THREE.MeshStandardMaterial({ color: 0x94A3B8, roughness: 0.7 });
+
+    const slabs = [];
+    const glassPanels = [];
+    for (let f = 0; f <= 6; f++) {
+      const y = f * 1.1;
+      const slab = new THREE.Mesh(new THREE.BoxGeometry(5.8, 0.14, 4.0), slabMat);
+      slab.position.y = y;
+      scene.add(slab);
+      slabs.push(slab);
+
+      if (f < 6) {
+        const wall = new THREE.Mesh(new THREE.BoxGeometry(5.7, 0.96, 3.9), glassMat);
+        wall.position.y = y + 0.55;
+        scene.add(wall);
+        glassPanels.push(wall);
+      }
+    }
+
+    // Columns
+    const colCoords = [[-2.6, -1.8], [0, -1.8], [2.6, -1.8], [-2.6, 1.8], [0, 1.8], [2.6, 1.8]];
+    colCoords.forEach(([cx, cz]) => {
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 6.7, 12), colMat);
+      col.position.set(cx, 3.3, cz);
+      scene.add(col);
+    });
+
+    // Sensors Mapping in 3D
+    const SENSOR_POS = {
+      strain: { pos: [-2.6, 1.1, 1.8], s: S.find(x => x.id === 'strain') },
+      crack:  { pos: [1.8, 2.2, 2.02], s: S.find(x => x.id === 'crack') },
+      temp:   { pos: [0, 4.4, 2.02],  s: S.find(x => x.id === 'temp') },
+      vib:    { pos: [-1.8, 5.5, 0],   s: S.find(x => x.id === 'vib') },
+      tilt:   { pos: [0, 6.7, 0],      s: S.find(x => x.id === 'tilt') }
+    };
+
+    const nodeMeshes = {};
+    const halos = [];
+    const getHex = (st) => (st === 'crit' ? 0xD2403A : st === 'warn' ? 0xB07A00 : 0x14935F);
+
+    Object.entries(SENSOR_POS).forEach(([sid, cfg]) => {
+      const group = new THREE.Group();
+      group.position.set(...cfg.pos);
+
+      const sphereMat = new THREE.MeshStandardMaterial({
+        color: getHex(stat(cfg.s, d[sid].at(-1))),
+        emissive: getHex(stat(cfg.s, d[sid].at(-1))),
+        emissiveIntensity: 0.45,
+        roughness: 0.3
+      });
+      const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), sphereMat);
+      sphere.userData = { sensorId: sid };
+      group.add(sphere);
+
+      const haloMat = new THREE.MeshBasicMaterial({ color: getHex(stat(cfg.s, d[sid].at(-1))), transparent: true, opacity: 0.65 });
+      const halo = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.035, 10, 24), haloMat);
+      halo.rotation.x = Math.PI / 2;
+      group.add(halo);
+
+      scene.add(group);
+      nodeMeshes[sid] = { sphere, halo, sphereMat, haloMat, cfg };
+      halos.push({ halo, haloMat, sid });
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    const onClick = (evt) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((evt.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const spheres = Object.values(nodeMeshes).map(m => m.sphere);
+      const hits = raycaster.intersectObjects(spheres);
+      if (hits.length > 0) {
+        pick(hits[0].object.userData.sensorId);
+      }
+    };
+    renderer.domElement.addEventListener('click', onClick);
+
+    let reqId;
+    let clock = new THREE.Clock();
+
+    const animate = () => {
+      reqId = requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+      if (controls) controls.update();
+
+      glassPanels.forEach(p => { p.material.wireframe = wireRef.current; });
+      slabs.forEach(s => { s.material.wireframe = wireRef.current; });
+
+      halos.forEach(({ halo, haloMat, sid }) => {
+        const s = SENSOR_POS[sid].s;
+        const v = d[sid].at(-1);
+        const st = stat(s, v);
+        const hex = getHex(st);
+        haloMat.color.setHex(hex);
+        nodeMeshes[sid].sphereMat.color.setHex(hex);
+        nodeMeshes[sid].sphereMat.emissive.setHex(hex);
+        const freq = st === 'crit' ? 6 : st === 'warn' ? 3.5 : 1.8;
+        const scale = 1 + 0.28 * Math.sin(t * freq);
+        halo.scale.set(scale, scale, scale);
+        haloMat.opacity = Math.max(0.1, 0.7 - 0.3 * Math.sin(t * freq));
+      });
+
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    const handleResize = () => {
+      const w = el.clientWidth || 360;
+      camera.aspect = w / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, height);
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(reqId);
+      renderer.domElement.removeEventListener('click', onClick);
+      renderer.dispose();
+    };
+  }, []);
+
+  const curSensor = S.find(x => x.id === sel);
+  const curVal = curSensor ? d[sel].at(-1) : 0;
+  const curSt = curSensor ? stat(curSensor, curVal) : 'ok';
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '330px', borderRadius: '16px', overflow: 'hidden', background: 'var(--bg)' }}>
+      <div ref={mountRef} style={{ width: '100%', height: '100%' }} />
+      <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 6, zIndex: 10 }}>
+        <button
+          className="btn"
+          style={{ padding: '4px 9px', fontSize: 11, background: 'rgba(15,42,67,0.78)', color: '#fff', border: 0, backdropFilter: 'blur(4px)' }}
+          onClick={() => setWireframe(!wireframe)}
+        >
+          {wireframe ? '🏢 Solid' : '🌐 Wireframe'}
+        </button>
+      </div>
+      <div style={{ position: 'absolute', bottom: 10, left: 10, background: 'var(--panel)', padding: '6px 12px', borderRadius: '10px', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8, boxShadow: 'var(--sh)', zIndex: 10 }}>
+        <span className={'chip ' + curSt} style={{ padding: '2px 8px', fontSize: 11 }}>{label[curSt]}</span>
+        <strong style={{ fontSize: 13 }}>{curSensor.n}:</strong>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--brand)' }}>{curVal.toFixed(curSensor.d)} {curSensor.u}</span>
+      </div>
+      <div style={{ position: 'absolute', top: 10, left: 10, color: 'var(--mute)', fontSize: 11, background: 'var(--panel)', padding: '3px 8px', borderRadius: '6px', border: '1px solid var(--line)', opacity: 0.9 }}>
+        Click &amp; drag 3D twin · Click nodes to select
+      </div>
+    </div>
+  );
+}
+
+function Chart({s,vals,l1,l2}){
+  const W=640,H=230,P=34;
+  const mx=Math.max(s.crit*1.15,...vals);
+  const y=v=>H-P-((v-s.off)/(mx-s.off))*(H-P-14),x=i=>P+i*((W-P-14)/(vals.length-1));
+  const line=vals.map((v,i)=>`${i?'L':'M'}${x(i)} ${y(v)}`).join('');
+  return(
+   <svg className="chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${s.n} trend`}>
+    <defs><linearGradient id="ga" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="var(--brand)" stopOpacity=".28"/><stop offset="1" stopColor="var(--brand)" stopOpacity="0"/></linearGradient></defs>
+    {[['warn','Warning'],['crit','Critical']].map(([k,l])=><g key={k}><line x1={P} x2={W-14} y1={y(s[k])} y2={y(s[k])} stroke={col(k)} strokeDasharray="5 5"/><text x={W-16} y={y(s[k])-5} textAnchor="end" fontSize="11" fill={col(k)} fontWeight="600">{l} {s[k]}{s.u}</text></g>)}
+    <path d={`${line}L${x(vals.length-1)} ${H-P}L${x(0)} ${H-P}z`} fill="url(#ga)"/>
+    <path d={line} fill="none" stroke="var(--brand)" strokeWidth="2.5" strokeLinejoin="round"/>
+    <circle cx={x(vals.length-1)} cy={y(vals.at(-1))} r="5" fill="var(--brand)" stroke="var(--panel)" strokeWidth="2"/>
+    <text x={P} y={H-10} fontSize="11" fill="var(--mute)">{l1||'Last 80 seconds'}</text>
+    <text x={W-14} y={H-10} fontSize="11" fill="var(--mute)" textAnchor="end">{l2||'Now'}</text>
+   </svg>
+  );
+}
+
+function Dashboard({b,d,alerts,ml,bi}){
+  const [sel,setSel]=useState('vib');
+  const [is3D,setIs3D]=useState(true);
+  const [incidentBusy,setIncidentBusy]=useState(false);
+  const s=S.find(x=>x.id===sel);
+  const h=health(d),t=hStat(h);
+  const open=alerts.filter(a=>a.st==='open').length,rec=alerts.slice(0,4);
+
+  const triggerSpike=async(kind)=>{
+    setIncidentBusy(true);
+    try{
+      await api('/api/simulate/spike?b='+(bi??0),{method:'POST',json:{kind}});
+    }catch(e){
+      alert(e.message);
+    }
+    setIncidentBusy(false);
+  };
+
+  return(<>
+    <div className={'banner '+t}><div className="bi">{t==='ok'?'\u2713':'!'}</div><div><b>{t==='ok'?'All systems normal':t==='warn'?'Attention needed':'Critical condition'}</b><span>{b.n} · {open?open+' open alert'+(open>1?'s':''):'no open alerts'} · health score {h}</span></div></div>
+
+    <div className="panel" style={{marginBottom:16,background:'linear-gradient(135deg,rgba(29,111,165,0.06),rgba(27,179,124,0.06))',border:'1px solid var(--brand)'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10}}>
+        <div>
+          <strong style={{fontSize:14}}>⚡ Incident &amp; Structural Anomaly Simulator</strong>
+          <span style={{display:'block',fontSize:12,color:'var(--mute)'}}>Inject live sensor anomalies to test the 3D twin, Isolation Forest ML detector, and alerts dispatch</span>
+        </div>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+          <button className="btn" disabled={incidentBusy} style={{padding:'6px 12px',fontSize:12,fontWeight:700}} onClick={()=>triggerSpike('vib')}>🌊 Seismic Spike</button>
+          <button className="btn" disabled={incidentBusy} style={{padding:'6px 12px',fontSize:12,fontWeight:700}} onClick={()=>triggerSpike('tilt')}>📐 Tilt Shift</button>
+          <button className="btn" disabled={incidentBusy} style={{padding:'6px 12px',fontSize:12,fontWeight:700}} onClick={()=>triggerSpike('strain')}>💥 Column Strain</button>
+          <button className="btn" disabled={incidentBusy} style={{padding:'6px 12px',fontSize:12,fontWeight:700}} onClick={()=>triggerSpike('crack')}>🧱 Crack Width</button>
+          <button className="btn" disabled={incidentBusy} style={{padding:'6px 12px',fontSize:12,fontWeight:700,background:'var(--brand2)',color:'var(--brand)',borderColor:'var(--brand)'}} onClick={()=>triggerSpike('ml')}>🤖 ML Anomaly</button>
+        </div>
+      </div>
+    </div>
+
+    <div className="hero">
+     <div className="panel score"><h2 style={{alignSelf:'flex-start'}}>Overall structural health</h2>
+      <Gauge score={h} t={t}/><div className="big">{h}</div>
+      <span className={'chip '+t} style={{marginTop:10}}>{label[t]}</span>
+      <div className="stats"><div><b>{S.length}/{S.length}</b><span>Sensors online</span></div><div><b>{open}</b><span>Open alerts</span></div><div><b style={{color:col(ml.flag?'warn':'ok')}}>{ml.flag?'Unusual':'Normal'}</b><span>ML check · {ml.n24} flagged in 24h</span></div></div>
+     </div>
+     <div className="panel">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10,flexWrap:'wrap',gap:8}}>
+        <h2 style={{margin:0}}>Structural Twin: {b.n}</h2>
+        <div className="tabs" style={{margin:0}}>
+          <button className={is3D?'on':''} onClick={()=>setIs3D(true)}>🏢 3D Twin</button>
+          <button className={!is3D?'on':''} onClick={()=>setIs3D(false)}>📐 2D Blueprint</button>
+        </div>
+      </div>
+      {is3D ? <Building3D d={d} sel={sel} pick={setSel} b={b}/> : <div className="elev"><Elevation d={d} sel={sel} pick={setSel}/></div>}
+      <p className="note" style={{textAlign:'center',marginTop:6}}>{is3D ? 'Rotate 360° or select any sensor node' : 'Select a dot to see that sensor’s trend'}</p>
+     </div>
+    </div>
+    <div className="cards">{S.map(x=>{const v=d[x.id].at(-1),st=stat(x,v);return(
+     <button key={x.id} className={`card ${st}${sel===x.id?' sel':''}`} onClick={()=>setSel(x.id)}>
+      <div className="n"><span className="nm"><span className="ico" style={{color:col(st)}}><Ic p={ICO[x.id]}/></span>{x.n}</span></div>
+      <div className="v">{v.toFixed(x.d)}<small>{x.u}</small></div><div style={{margin:'6px 0 2px'}}><span className={'chip '+st}>{label[st]}</span></div><Spark vals={d[x.id]} t={st}/></button>)})}</div>
+    <div className="two">
+     <div className="panel"><h2>{s.n} trend ({s.u})</h2><Chart s={s} vals={d[sel]}/></div>
+     <div className="panel"><h2>Recent alerts</h2>
+      {rec.length===0&&<p className="note">No alerts yet. Readings are within safe limits.</p>}
+      {rec.map(a=><div className="al" key={a.id}><i style={{background:col(a.sev)}}/><div><b>{a.sensor==='ML check'?'Unusual pattern detected':a.sensor+(a.sev==='crit'?' critical':' above warning level')}</b><span>{a.b} · {a.val} · {a.time}</span></div></div>)}</div>
+    </div></>);
+}
+
+function Alerts({alerts,reload,role}){
+  const [f,setF]=useState('all');
+  const adv=async id=>{try{await api('/api/alerts/'+id+'/advance',{method:'POST'});reload()}catch(x){alert(x.message)}};
+  const rows=alerts.filter(a=>f==='all'||a.st===f);
+  return(<div className="panel"><div className="tabs">{[['all','All'],['open','Open'],['ack','Acknowledged'],['resolved','Resolved']].map(([k,l])=><button key={k} className={f===k?'on':''} onClick={()=>setF(k)}>{l}</button>)}</div>
+   <div className="tw"><table className="tbl"><thead><tr><th>Severity</th><th>Sensor</th><th>Building</th><th>Reading</th><th>Time</th><th>Status</th><th></th></tr></thead><tbody>
+    {rows.map(a=><tr key={a.id}><td><span className={'chip '+a.sev}>{label[a.sev]}</span></td><td>{a.sensor}</td><td>{a.b}</td><td>{a.val}</td><td>{a.time}</td><td style={{textTransform:'capitalize'}}>{a.st==='ack'?'Acknowledged':a.st}</td>
+     <td>{a.st!=='resolved'&&role!=='Viewer'&&<button className="btn" onClick={()=>adv(a.id)}>{a.st==='open'?'Acknowledge':'Resolve'}</button>}</td></tr>)}
+   </tbody></table></div>{rows.length===0&&<p className="note">No alerts in this view.</p>}</div>);
+}
+
+function Analytics({bi, b}){
+  const [data,setData]=useState(null);
+  const [loading,setLoading]=useState(true);
+  const [err,setErr]=useState('');
+  const [thresh,setThresh]=useState({});
+  const [saving,setSaving]=useState(false);
+  const [savedOk,setSavedOk]=useState(false);
+
+  const loadData=async()=>{
+    setLoading(true);setErr('');
+    try{
+      const res=await api('/api/analytics/overview?b='+bi);
+      setData(res);
+      setThresh(res.sensors||{});
+    }catch(e){setErr(e.message)}
+    setLoading(false);
+  };
+
+  useEffect(()=>{loadData()},[bi]);
+
+  const saveThresholds=async(e)=>{
+    e.preventDefault();
+    setSaving(true);
+    try{
+      await api('/api/settings/sensors',{method:'POST',json:thresh});
+      setSavedOk(true);
+      setTimeout(()=>setSavedOk(false),3000);
+      loadData();
+    }catch(e){alert(e.message)}
+    setSaving(false);
+  };
+
+  if(loading)return <div className="sk"><div/><div/><div/></div>;
+  if(err)return <div className="panel"><p className="err">{err}</p></div>;
+  if(!data)return null;
+
+  const corr=data.correlations||{};
+  const buildings=data.buildings||[];
+  const defects=data.defects||{};
+  const keys=['vib','tilt','crack','strain','temp'];
+
+  const getCorrBg=(v)=>{
+    if(v>=0.5)return 'rgba(29, 111, 165, 0.28)';
+    if(v>=0.2)return 'rgba(29, 111, 165, 0.12)';
+    if(v<=-0.4)return 'rgba(210, 64, 58, 0.2)';
+    if(v<=-0.15)return 'rgba(210, 64, 58, 0.1)';
+    return 'var(--bg)';
+  };
+
+  return(
+    <>
+      <div className="panel">
+        <h2>Cross-Building Integrity Index</h2>
+        <p className="note" style={{marginTop:-8,marginBottom:16}}>Live structural risk scoring across monitored properties.</p>
+        <div className="cards" style={{margin:0,gridTemplateColumns:'repeat(3, 1fr)'}}>
+          {buildings.map((bld)=>(
+            <div key={bld.id} className="card" style={{padding:16,borderLeft:`5px solid ${bld.score>=75?'var(--ok)':bld.score>=50?'var(--warn)':'var(--crit)'}`}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <strong style={{fontSize:15}}>{bld.name}</strong>
+                <span className={'chip '+(bld.score>=75?'ok':bld.score>=50?'warn':'crit')}>
+                  Score {bld.score}
+                </span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginTop:12}}>
+                <div style={{background:'var(--bg)',borderRadius:8,padding:8}}>
+                  <span style={{fontSize:11,color:'var(--mute)'}}>Open Alerts</span>
+                  <strong style={{display:'block',fontSize:18,color:bld.open_alerts>0?'var(--crit)':'var(--ok)'}}>{bld.open_alerts}</strong>
+                </div>
+                <div style={{background:'var(--bg)',borderRadius:8,padding:8}}>
+                  <span style={{fontSize:11,color:'var(--mute)'}}>24h Anomalies</span>
+                  <strong style={{display:'block',fontSize:18}}>{bld.anomalies_24h}</strong>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="two mt">
+        <div className="panel">
+          <h2>Multi-Sensor Pearson Correlation Matrix</h2>
+          <p className="note" style={{marginTop:-8,marginBottom:14}}>Physical co-movement of dynamic sensors computed via NumPy over last 500 telemetry records.</p>
+          <div className="tw">
+            <table className="tbl" style={{textAlign:'center'}}>
+              <thead>
+                <tr>
+                  <th style={{textAlign:'left'}}>Sensor</th>
+                  {keys.map(k=><th key={k} style={{textAlign:'center'}}>{S.find(x=>x.id===k)?.n}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {keys.map(rKey=>(
+                  <tr key={rKey}>
+                    <td style={{textAlign:'left',fontWeight:700}}>{S.find(x=>x.id===rKey)?.n}</td>
+                    {keys.map(cKey=>{
+                      const val=(corr[rKey]&&corr[rKey][cKey])??(rKey===cKey?1.0:0.0);
+                      return(
+                        <td key={cKey} style={{background:getCorrBg(val),fontWeight:700,fontSize:13}}>
+                          {val.toFixed(2)}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="note" style={{margin:'8px 0 0'}}>💡 Positive correlation (blue) indicates physical mechanical coupling (e.g. vibration increases beam strain).</p>
+        </div>
+
+        <div className="panel">
+          <h2>Defect Distribution by Member</h2>
+          <p className="note" style={{marginTop:-8,marginBottom:14}}>Recorded crack inspection severity categorized by building member.</p>
+          <div style={{display:'grid',gap:10}}>
+            {['Wall','Column','Beam','Slab','Foundation'].map(el=>{
+              const def=defects[el]||{ok:0,warn:0,crit:0,none:0};
+              const total=(def.ok||0)+(def.warn||0)+(def.crit||0);
+              return(
+                <div key={el} style={{background:'var(--bg)',borderRadius:10,padding:'10px 14px'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+                    <strong>{el}</strong>
+                    <span style={{fontSize:12,color:'var(--mute)'}}>{total} logged</span>
+                  </div>
+                  <div style={{display:'flex',gap:6,fontSize:11,fontWeight:700}}>
+                    <span className="chip ok" style={{padding:'1px 7px'}}>{def.ok||0} Hairline</span>
+                    <span className="chip warn" style={{padding:'1px 7px'}}>{def.warn||0} Minor</span>
+                    <span className="chip crit" style={{padding:'1px 7px'}}>{def.crit||0} Major</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="panel mt">
+        <h2>Engineering Alert Threshold Calibration</h2>
+        <p className="note" style={{marginTop:-8,marginBottom:14}}>Calibrate warning and critical safety limits per sensor. Updates live alerts immediately.</p>
+        {savedOk&&<div className="banner ok" style={{marginBottom:14}}><b>✓ Safety thresholds updated successfully!</b></div>}
+        <form onSubmit={saveThresholds}>
+          <div className="tw">
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>Sensor</th>
+                  <th>Unit</th>
+                  <th>Warning Threshold (Warn)</th>
+                  <th>Critical Threshold (Crit)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {keys.map(k=>{
+                  const s=thresh[k]||S.find(x=>x.id===k);
+                  return(
+                    <tr key={k}>
+                      <td style={{fontWeight:700}}>{s.name||s.n}</td>
+                      <td>{s.unit||s.u}</td>
+                      <td>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={thresh[k]?.warn??s.warn}
+                          onChange={e=>setThresh({...thresh,[k]:{...(thresh[k]||s),warn:parseFloat(e.target.value)}})}
+                          style={{width:110,padding:'6px 8px',border:'1px solid var(--line)',borderRadius:8,font:'inherit'}}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={thresh[k]?.crit??s.crit}
+                          onChange={e=>setThresh({...thresh,[k]:{...(thresh[k]||s),crit:parseFloat(e.target.value)}})}
+                          style={{width:110,padding:'6px 8px',border:'1px solid var(--line)',borderRadius:8,font:'inherit'}}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <button className="btn pri" type="submit" disabled={saving} style={{marginTop:14}}>
+            {saving?'Saving...':'💾 Save & Apply Thresholds'}
+          </button>
+        </form>
+      </div>
+    </>
+  );
+}
+
+const ELEMS=[['Wall','Wall'],['Column','Column'],['Beam','Beam'],['Slab','Slab / ceiling'],['Foundation','Foundation']];
+const ROLE={
+  Foundation:'Spreads the building’s weight into the ground.',
+  Column:'Carries the floor loads down to the foundation.',
+  Beam:'Carries slab loads sideways to the columns.',
+  Slab:'The floor or roof plate that spreads loads to the beams.',
+  Wall:'Fills the gaps between columns and mostly carries only its own weight.'
+};
+
+function BeforeAfter({a,b}){
+  const [x,setX]=useState(50);
+  return(
+   <div className="ba"><img src={a} alt="Photo before repair"/>
+    <div className="ba-r" style={{clipPath:`inset(0 0 0 ${x}%)`}}><img src={b} alt="Simulated photo after repair"/></div>
+    <div className="ba-h" style={{left:x+'%'}}/><span className="ba-l l">Before</span><span className="ba-l r">After repair</span>
+    <input type="range" min="0" max="100" value={x} onChange={e=>setX(+e.target.value)} aria-label="Drag to compare before and after repair"/></div>
+  );
+}
+
+function Structure({el,sev}){
+  const c=sev==='none'?'brand':sev;
+  const hl=n=>el===n?{fill:col(c),className:'hl'}:{fill:'var(--win)'};
+  const wall=el==='Wall'?{fill:col(c),className:'hl'}:{fill:'var(--wall)'};
+  return(
+   <svg viewBox="0 0 300 226" role="img" aria-label={'Diagram of a building frame with the '+el+' highlighted'} style={{width:'100%',maxWidth:340}}>
+    <g stroke="var(--panel)" strokeWidth="1.5">
+     <rect x="10" y="30" width="280" height="12" rx="2" {...hl('Slab')}/><rect x="10" y="92" width="280" height="12" rx="2" {...hl('Slab')}/>
+     {[46,159].map(x=><g key={x}><rect x={x} y="42" width="95" height="14" {...hl('Beam')}/><rect x={x} y="104" width="95" height="14" {...hl('Beam')}/>
+      <rect x={x} y="56" width="95" height="36" {...wall}/><rect x={x} y="118" width="95" height="86" {...wall}/></g>)}
+     {[28,141,254].map(x=><rect key={x} x={x} y="42" width="18" height="162" {...hl('Column')}/>)}
+     <rect x="10" y="204" width="280" height="16" rx="3" {...hl('Foundation')}/></g>
+   </svg>
+  );
+}
+
+function Crack({bi}){
+  const [file,setFile]=useState(null);const [prev,setPrev]=useState('');const [mm,setMm]=useState(0.25);const [el,setEl]=useState('Wall');const [loc,setLoc]=useState('');
+  const [res,setRes]=useState(null);const [busy,setBusy]=useState(false);const [err,setErr]=useState('');const [list,setList]=useState([]);const [info,setInfo]=useState(null);
+  const loadList=()=>api('/api/crack/reports').then(r=>setList(r.reports)).catch(()=>{});
+  useEffect(()=>{loadList();api('/api/crack/model').then(setInfo).catch(()=>{})},[]);
+  const pick=f=>{if(!f)return;if(f.type.startsWith('image/')){setFile(f);setPrev(URL.createObjectURL(f));setRes(null);setErr('')}else setErr('Please choose an image file (JPG or PNG).')};
+  const run=async()=>{
+    setBusy(true);setErr('');
+    try{
+      const fd=new FormData();
+      fd.append('image',file);fd.append('mm_per_px',mm);fd.append('b',bi);fd.append('element',el);fd.append('location',loc);
+      const output = await api('/api/crack',{method:'POST',body:fd});
+      setRes(output);
+      loadList();
+    }catch(x){setErr(x.message)}
+    setBusy(false);
+  };
+  const loadSample=async(filename,defaultElem,locationName)=>{
+    setBusy(true);setErr('');
+    try{
+      const resp=await fetch('/sample_images/'+filename);
+      const blob=await resp.blob();
+      const f=new File([blob],filename,{type:'image/jpeg'});
+      setFile(f);setPrev(URL.createObjectURL(f));setEl(defaultElem);setLoc(locationName);setRes(null);
+      const fd=new FormData();
+      fd.append('image',f);fd.append('mm_per_px',mm);fd.append('b',bi);fd.append('element',defaultElem);fd.append('location',locationName);
+      const output=await api('/api/crack',{method:'POST',body:fd});
+      setRes(output);
+      loadList();
+    }catch(x){setErr(x.message)}
+    setBusy(false);
+  };
+  const open=async id=>{
+    try{setErr('');const r=await api('/api/crack/reports/'+id);setFile(null);setRes(r);window.scrollTo({top:0,behavior:'smooth'})}catch(x){setErr(x.message)}
+  };
+  const cls=v=>v==='none'?'ok':v;const A=res&&res.advice;
+
+  return(<>
+   <div className="panel"><h2>Crack detection &amp; Structural AI</h2>
+    <div style={{marginBottom:14,background:'var(--bg)',borderRadius:12,padding:'12px 14px',border:'1px solid var(--line)'}}>
+      <span style={{fontSize:12.5,fontWeight:700,display:'block',marginBottom:8}}>⚡ 1-Click Test Photos (Analyze immediately without uploading):</span>
+      <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+        <button className="btn" disabled={busy} style={{padding:'7px 12px',fontSize:12,fontWeight:700}} onClick={()=>loadSample('crack_test_severe.jpg','Column','Main Column F1')}>🔴 Major Branching Crack</button>
+        <button className="btn" disabled={busy} style={{padding:'7px 12px',fontSize:12,fontWeight:700}} onClick={()=>loadSample('crack_test_hairline.jpg','Wall','Partition Wall F3')}>🟡 Hairline / Minor Crack</button>
+        <button className="btn" disabled={busy} style={{padding:'7px 12px',fontSize:12,fontWeight:700}} onClick={()=>loadSample('crack_test_diagonal.jpg','Beam','Shear Beam End')}>🟠 Diagonal Shear Crack</button>
+        <button className="btn" disabled={busy} style={{padding:'7px 12px',fontSize:12,fontWeight:700}} onClick={()=>loadSample('concrete_normal.jpg','Wall','Exterior Wall Panel')}>🟢 Intact Concrete (Safe)</button>
+      </div>
+    </div>
+    <label className="drop" style={{display:'block',cursor:'pointer'}} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();pick(e.dataTransfer.files[0])}}>
+     <strong>{file||res?'Choose a different photo':'Take or choose an inspection photo'}</strong>On a phone this opens your camera or gallery
+     <input type="file" accept="image/*" hidden onChange={e=>pick(e.target.files[0])}/></label>
+    {file&&<div className="flt" style={{marginTop:14,marginBottom:0}}>
+     <label>Part of the structure<select value={el} onChange={e=>setEl(e.target.value)}>{ELEMS.map(([k,l])=><option key={k} value={k}>{l}</option>)}</select></label>
+     <label>Where is it? (optional)<input type="text" maxLength="80" placeholder="e.g. Library, 2nd floor" value={loc} onChange={e=>setLoc(e.target.value)}/></label>
+     <label>Scale (mm per pixel)<input type="number" step="0.05" min="0.01" value={mm} onChange={e=>setMm(e.target.value)}/></label>
+     <button className="btn pri" onClick={run} disabled={busy}>{busy?'Analysing…':'Analyse photo'}</button></div>}
+    {err&&<p className="err" role="alert">{err}</p>}
+    {file&&!res&&<div className="imgs mt"><div><p>Your photo</p><img src={prev} alt="Selected photo"/></div></div>}
+    {res&&<>
+     <div className="rng" style={{marginBottom:10,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10}}>
+      <div>
+        <span className={'chip '+cls(res.severity)}>{res.label}</span>
+        <span className="chip" style={{background:'var(--brand2)',color:'var(--brand)'}}>ML confidence {Math.round(res.ml_conf*100)}%</span>
+        {res.pattern!=='none'&&<span className="mini">Direction: {res.pattern}</span>}
+        {res.location&&<span className="mini">{res.location}</span>}
+      </div>
+      {res.id&&<button className="btn pri" style={{display:'inline-flex',alignItems:'center',gap:6,padding:'8px 14px',fontSize:13}} onClick={()=>window.open('/api/crack/reports/'+res.id+'/report?token='+TOKEN,'_blank')}><Ic p={ICON.doc}/> 📄 Export Official PDF Report</button>}
+     </div>
+     {res.detected&&<div className="stats s4"><div><b>{res.length_mm} mm</b><span>Crack length</span></div><div><b>{res.max_width_mm} mm</b><span>Widest part</span></div><div><b>{res.avg_width_mm} mm</b><span>Average width</span></div><div><b>{res.coverage_pct}%</b><span>Image covered</span></div></div>}
+     <div className="imgs mt"><div><p>Original</p><img src={res.original} alt="Original photo"/></div><div><p>Detected cracks (red)</p><img src={res.image} alt="Photo with cracks highlighted"/></div></div>
+     {res.detected&&<div className="mt"><p style={{fontWeight:700,margin:'0 0 8px'}}>Repair simulation<span className="mini">drag the slider to compare</span></p><BeforeAfter a={res.original} b={res.repaired}/></div>}</>}
+    <p className="note">Crack finder: a Random Forest ML model scans the photo in small patches, then OpenCV measures what it finds.{info&&` This copy was trained on ${info.source} (${info.trained_on} patches) and scores ${Math.round(info.accuracy*100)}% on its own test patches${info.accuracy_hard?`, ${Math.round(info.accuracy_hard*100)}% on harder ones`:''}.`} Set the scale from something of known size in the photo (a 100 mm ruler spanning 400 pixels is 0.25 mm per pixel).</p></div>
+    {A&&<div className="two mt"><div className="panel"><h2>What to do</h2>
+      <div className="rng" style={{margin:'0 0 10px'}}><span className={'chip '+({Low:'ok',Medium:'warn',High:'crit'}[A.urgency])}>{A.urgency} priority</span></div>
+      <p className="lead">{A.summary}</p>
+      <h3 className="h3">Likely cause</h3><p style={{margin:0}}>{A.cause}</p>
+      <h3 className="h3">Repair steps</h3><ol>{A.steps.map((t,i)=><li key={i}>{t}</li>)}</ol>
+      <h3 className="h3">Keep an eye on it</h3><p style={{margin:0}}>{A.monitor}</p>
+      {A.deformation&&<p className="callout">{A.deformation}</p>}
+      <p className="note">{A.note}</p></div>
+     <div className="panel"><h2>Where this is in the structure</h2><div className="elev"><Structure el={A.element.key} sev={res.severity}/></div>
+      <h3 className="h3">{A.element.name}</h3><p style={{margin:0}}>{A.element.role}</p><p style={{margin:'6px 0 0'}}>{A.element.why}</p>
+      <ul className="leg">{ELEMS.map(([k,l])=><li key={k} className={k===A.element.key?'on':''}><b>{l}:</b> {ROLE[k]}</li>)}</ul></div></div>}
+    <div className="panel mt"><h2>My crack reports</h2><p className="note" style={{marginTop:-6}}>Saved in your account. Only you can see them. Click a row to open it, or click PDF to download certificate.</p>
+     {list.length===0?<p className="note" style={{margin:0}}>No photos analysed yet.</p>:<div className="tw"><table className="tbl"><thead><tr><th>Time</th><th>Building</th><th>Part</th><th>Location</th><th>Length</th><th>Width</th><th>Result</th><th>Official Report</th></tr></thead><tbody>
+      {list.map(r=><tr key={r.id}>
+        <td className="click" onClick={()=>open(r.id)}>{r.time}</td>
+        <td className="click" onClick={()=>open(r.id)}>{r.b}</td>
+        <td className="click" onClick={()=>open(r.id)}>{r.element}</td>
+        <td className="click" onClick={()=>open(r.id)}>{r.location}</td>
+        <td className="click" onClick={()=>open(r.id)}>{r.length} mm</td>
+        <td className="click" onClick={()=>open(r.id)}>{r.width} mm</td>
+        <td className="click" onClick={()=>open(r.id)}><span className={'chip '+cls(r.severity)}>{r.label}</span></td>
+        <td><button className="btn" style={{padding:'5px 12px',fontSize:12,display:'inline-flex',alignItems:'center',gap:5}} onClick={(e)=>{e.stopPropagation();window.open('/api/crack/reports/'+r.id+'/report?token='+TOKEN,'_blank')}}><Ic p={ICON.doc}/> PDF</button></td>
+      </tr>)}</tbody></table></div>}</div></>);
+}
+
+function Login({onLogin}){
+  const [em,setEm]=useState('');const [pw,setPw]=useState('');const [role,setRole]=useState('Engineer');const [err,setErr]=useState('');
+  const [reg,setReg]=useState(false);const [busy,setBusy]=useState(false);
+  const go=async e=>{e.preventDefault();if(!/^\S+@\S+\.\S+$/.test(em))return setErr('Enter a valid email address.');if(pw.length<6)return setErr('Password must be at least 6 characters.');
+   setBusy(true);setErr('');try{const r=await api(reg?'/api/register':'/api/login',{method:'POST',json:{email:em,password:pw,role}});TOKEN=r.token;onLogin(r.user)}catch(x){setErr(x.message)}setBusy(false)};
+  const demo=async()=>{setBusy(true);setErr('');setEm('admin@structsense.com');setPw('admin123');setReg(false);try{const r=await api('/api/login',{method:'POST',json:{email:'admin@structsense.com',password:'admin123'}});TOKEN=r.token;onLogin(r.user)}catch(x){setErr(x.message)}setBusy(false)};
+  return(<div className="lg">
+   <section className="lgl"><div className="logo" style={{padding:0}}><i><Ic p={ICON.bld}/></i>StructSense</div>
+    <h1>Monitor the structural health of every building in one place</h1>
+    <p>Live sensor readings, early warnings, 3D digital twins, and AI crack inspections for your engineering team.</p>
+    <ul><li>3D Architectural Digital Twin</li><li>Live health scores &amp; correlation analytics</li><li>Isolation Forest ML anomaly detection</li><li>Official PDF engineering inspection reports</li></ul><div className="pills"><span>Three.js 3D Twin</span><span>Isolation Forest ML</span><span>OpenCV crack detection</span><span>PDF Reports</span></div></section>
+   <section className="lgr"><form className="lgf" onSubmit={go} noValidate><h2>{reg?'Create account':'Sign in'}</h2>
+    <button type="button" className="btn" style={{background:'var(--brand2)',borderColor:'var(--brand)',color:'var(--brand)',fontWeight:700,marginBottom:6}} onClick={demo} disabled={busy}>⚡ Quick Demo Sign In (admin@structsense.com)</button>
+    <label>Email<input type="email" value={em} onChange={e=>setEm(e.target.value)} autoComplete="email" placeholder="you@college.edu"/></label>
+    <label>Password<input type="password" value={pw} onChange={e=>setPw(e.target.value)} autoComplete="current-password"/></label>
+    {err&&<p className="err" role="alert">{err}</p>}
+    <button className="btn pri" type="submit" disabled={busy}>{reg?'Create account':'Sign in'}</button>
+    <button type="button" className="btn" onClick={()=>{setReg(!reg);setErr('')}}>{reg?'I already have an account':'Create a new account'}</button>
+    <p className="note" style={{margin:0}}>Sign in with your email and a password. Your crack photos and reports are saved in your own account.</p></form></section></div>);
+}
+
+function History({bi}){
+  const [sid,setSid]=useState('vib');const iso=d=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+  const [to,setTo]=useState(iso(new Date()));const [from,setFrom]=useState(iso(new Date(Date.now()-13*864e5)));
+  const [rows,setRows]=useState([]);const [err,setErr]=useState('');
+  const s=S.find(x=>x.id===sid);
+  useEffect(()=>{setErr('');api(`/api/history?b=${bi}&sensor=${sid}&from=${from}&to=${to}`).then(r=>setRows(r.rows)).catch(x=>setErr(x.message))},[sid,from,to,bi]);
+  const range=n=>{setTo(iso(new Date()));setFrom(iso(new Date(Date.now()-(n-1)*864e5)))};
+  const exp=async()=>{try{const r=await fetch(`/api/history.csv?b=${bi}&sensor=${sid}&from=${from}&to=${to}`,{headers:{Authorization:'Bearer '+TOKEN}});if(!r.ok)throw new Error('Export failed. Try again.');const u=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=u;a.download=`${sid}_${from}_to_${to}.csv`;a.click();URL.revokeObjectURL(u)}catch(x){setErr(x.message)}};
+  const wd=rows.filter(r=>r.max>=s.warn&&r.max<s.crit).length,cd=rows.filter(r=>r.max>=s.crit).length;
+  const avg=rows.length?rows.reduce((a,r)=>a+r.avg,0)/rows.length:0,peak=rows.length?Math.max(...rows.map(r=>r.max)):0;
+  return(<>
+   <div className="panel"><div className="flt">
+    <label>Sensor<select value={sid} onChange={e=>setSid(e.target.value)}>{S.map(x=><option key={x.id} value={x.id}>{x.n}</option>)}</select></label>
+    <label>From<input type="date" value={from} max={to} onChange={e=>setFrom(e.target.value)}/></label>
+    <label>To<input type="date" value={to} min={from} max={iso(new Date())} onChange={e=>setTo(e.target.value)}/></label>
+    <div className="tabs">{[7,30].map(n=><button key={n} onClick={()=>range(n)}>Last {n} days</button>)}<button onClick={exp}>Export CSV</button></div></div>
+    {err&&<p className="err" role="alert">{err}</p>}
+    <div className="stats s4" style={{marginTop:0}}>
+     <div><b>{avg.toFixed(s.d)} {s.u}</b><span>Average</span></div><div><b>{peak.toFixed(s.d)} {s.u}</b><span>Peak</span></div>
+     <div><b>{wd}</b><span>Warning days</span></div><div><b>{cd}</b><span>Critical days</span></div></div></div>
+   {rows.length<2?<div className="panel mt"><p className="note" style={{margin:0}}>Choose a range of at least two days that have data. The last 30 days are stored.</p></div>:<>
+   <div className="panel mt"><h2>{s.n}: daily average ({s.u})</h2><Chart s={s} vals={rows.map(r=>r.avg)} l1={from} l2={to}/></div>
+   <div className="panel mt"><h2>Daily readings</h2><div className="tw sc"><table className="tbl"><thead><tr><th>Date</th><th>Min</th><th>Average</th><th>Max</th><th>Status</th></tr></thead><tbody>
+    {[...rows].reverse().map(r=>{const t=stat(s,r.max);return <tr key={r.date}><td>{r.date}</td><td>{r.min.toFixed(s.d)}</td><td>{r.avg.toFixed(s.d)}</td><td>{r.max.toFixed(s.d)} {s.u}</td><td><span className={'chip '+t}>{label[t]}</span></td></tr>})}
+   </tbody></table></div></div></>}</>);
+}
+
+function App(){
+ const [pg,setPg]=useState('dash');const [user,setUser]=useState(null);const [bi,setBi]=useState(0);const b=B[bi];
+ const [theme,setTheme]=useState(null);const [d,setD]=useState(null);const [ml,setMl]=useState({flag:false,n24:0});const [alerts,setAlerts]=useState([]);const [off,setOff]=useState(false);
+ const loadAlerts=()=>api('/api/alerts').then(r=>setAlerts(r.alerts)).catch(()=>{});
+ useEffect(()=>{if(theme)document.documentElement.dataset.theme=theme},[theme]);
+ useEffect(()=>{if(!user)return;let on=true;setD(null);
+  const tick=()=>api('/api/live?b='+bi).then(r=>{if(on){setD(r.series);setMl(r.ml);setOff(false)}}).catch(()=>on&&setOff(true));
+  tick();const id=setInterval(tick,2000);return()=>{on=false;clearInterval(id)}},[user,bi]);
+ useEffect(()=>{if(!user)return;loadAlerts();const id=setInterval(loadAlerts,4000);return()=>clearInterval(id)},[user]);
+ const open=alerts.filter(a=>a.st==='open').length;
+ const hr=new Date().getHours(),greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening',nm=user?user.name.charAt(0).toUpperCase()+user.name.slice(1):'';
+ const titles={
+   dash:['Dashboard','Live structural readings, 3D Digital Twin, and health scores'],
+   alerts:['Alerts','Review, acknowledge and resolve structural warnings'],
+   history:['History','Past readings by sensor and date range with CSV export'],
+   analytics:['Analytics & Correlations','Multi-sensor dependencies, building comparisons, and safety thresholds'],
+   crack:['Crack analysis','AI crack detection, repair simulation, and official PDF reporting']
+ };
+ const dark=theme?theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+ if(!user)return <Login onLogin={setUser}/>;
+ return(<div className="app">
+  <nav className="side" aria-label="Main">
+   <div className="logo"><i><Ic p={ICON.bld}/></i>StructSense</div>
+   {[
+     ['dash','Dashboard',ICON.grid],
+     ['alerts','Alerts',ICON.bell],
+     ['history','History',ICON.clock],
+     ['analytics','Analytics',ICON.chart],
+     ['crack','Crack analysis',ICON.cam]
+   ].map(([k,l,p])=>
+    <button key={k} className={'nav'+(pg===k?' on':'')} onClick={()=>setPg(k)}><Ic p={p}/>{l}{k==='alerts'&&open>0&&<b>{open}</b>}</button>)}
+   <small>Signed in as {user.email}<br/>Sensor data is simulated by the server</small>
+  </nav>
+  <main className="main">
+   <div className="top"><div><h1>{pg==='dash'?greet+', '+nm:titles[pg][0]}</h1><p>{titles[pg][1]}</p></div><div className="sp"/>
+    <div className="live"><span/>Live · updates every 2s</div>
+    <select value={bi} onChange={e=>setBi(+e.target.value)} aria-label="Building">{B.map((x,i)=><option key={i} value={i}>{x.n} · {x.c}</option>)}</select>
+    <button className="btn" onClick={()=>setTheme(dark?'light':'dark')}>{dark?'Light mode':'Dark mode'}</button><button className="btn" onClick={()=>{TOKEN=null;setUser(null)}}>Sign out</button></div>
+   {off&&<p className="err" role="alert">Lost connection to the server. Retrying…</p>}
+   {pg==='dash'&&(d?<Dashboard b={b} d={d} alerts={alerts} ml={ml} bi={bi}/>:<div className="sk"><div/><div/><div/></div>)}
+   {pg==='alerts'&&<Alerts alerts={alerts} reload={loadAlerts} role={user.role}/>}
+   {pg==='history'&&<History bi={bi}/>}
+   {pg==='analytics'&&<Analytics bi={bi} b={b}/>}
+   {pg==='crack'&&<Crack bi={bi}/>}
+  </main></div>);
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
